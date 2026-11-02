@@ -1,0 +1,4 @@
+model,auc,gini,ks
+Logistic regression,0.7106,0.4213,0.3148
+Gradient boosting,0.7046,0.4093,0.3096
+Benchmark: LC grade only,0.6716,0.3433,0.2682

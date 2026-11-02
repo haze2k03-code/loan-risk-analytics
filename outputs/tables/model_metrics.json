@@ -1,0 +1,47 @@
+{
+  "split": "out-of-time: train < 2011, test = 2011",
+  "train_loans": 18061,
+  "test_loans": 20516,
+  "test_default_rate": 0.1587,
+  "best_model": "Logistic regression",
+  "models": [
+    {
+      "model": "Logistic regression",
+      "auc": 0.7106,
+      "gini": 0.4213,
+      "ks": 0.3148
+    },
+    {
+      "model": "Gradient boosting",
+      "auc": 0.7046,
+      "gini": 0.4093,
+      "ks": 0.3096
+    },
+    {
+      "model": "Benchmark: LC grade only",
+      "auc": 0.6716,
+      "gini": 0.3433,
+      "ks": 0.2682
+    }
+  ],
+  "lgd": 0.447,
+  "best_cutoff": {
+    "approval_rate": 1.0,
+    "pd_cutoff": 0.7466,
+    "approved_loans": 20516.0,
+    "default_rate": 0.1587,
+    "disbursed": 241065025.0,
+    "profit": 33304082.74,
+    "profit_per_loan": 1623.3224
+  },
+  "approve_all": {
+    "approval_rate": 1.0,
+    "pd_cutoff": 0.7466,
+    "approved_loans": 20516.0,
+    "default_rate": 0.1587,
+    "disbursed": 241065025.0,
+    "profit": 33304082.74,
+    "profit_per_loan": 1623.3224
+  },
+  "top_10pct_expected_loss_share": 0.3888
+}
