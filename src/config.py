@@ -19,5 +19,9 @@ TEST_YEAR = 2011
 # If the data doesn't let us estimate it, assume we lose 60% of a defaulted loan.
 DEFAULT_LGD = 0.60
 
+# What it costs the lender to borrow the money it lends, per year.
+# Used in the profit calculation; adjustable in the dashboard.
+COST_OF_FUNDS = 0.05
+
 for d in (PROCESSED.parent, TABLES, CHARTS):
     d.mkdir(parents=True, exist_ok=True)

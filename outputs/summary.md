@@ -14,8 +14,8 @@
 - Strongest drivers: purpose_small_business (raises risk); purpose_credit_card (lowers risk); purpose_wedding (lowers risk).
 
 ## Decisions
-- Approving everyone in the test year: default rate 15.9%, profit $33.30M (simplified: interest earned minus 45% loss on defaults).
-- Best cutoff: approve the safest **100%**, default rate falls to **15.9%** and profit is **$33.30M**.
+- Approving everyone in the test year: default rate 15.9%, profit -$3.88M (based on actual repayments, minus a 5% a year cost of funds).
+- Best cutoff: approve the safest **70%**: default rate falls from 15.9% to **10.0%** and profit rises to **$2.64M** (+$6.52M).
 - Collections: the top 10% of loans by expected loss carry **39%** of all expected loss, so calling them first covers the most risk per call.
 
 ## Recommendations (edit these)

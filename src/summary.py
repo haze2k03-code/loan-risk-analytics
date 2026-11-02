@@ -11,6 +11,10 @@ import pandas as pd
 from config import ROOT, TABLES
 
 
+def money(x):
+    return f"{'-' if x < 0 else ''}${abs(x) / 1e6:,.2f}M"
+
+
 def top(seg, dimension, n=1, ascending=False):
     d = seg[seg["dimension"] == dimension].sort_values("default_rate", ascending=ascending)
     return d.head(n)
@@ -69,9 +73,14 @@ def main():
         "",
         "## Decisions",
         f"- Approving everyone in the test year: default rate {allin['default_rate']:.1%}, "
-        f"profit ${allin['profit'] / 1e6:,.2f}M (simplified: interest earned minus {m['lgd']:.0%} loss on defaults).",
-        f"- Best cutoff: approve the safest **{cut['approval_rate']:.0%}**, default rate falls to "
-        f"**{cut['default_rate']:.1%}** and profit is **${cut['profit'] / 1e6:,.2f}M**.",
+        f"profit {money(allin['profit'])} (based on {m.get('profit_basis', 'estimated')} repayments, "
+        f"minus a {m.get('cost_of_funds', 0):.0%} a year cost of funds).",
+        (f"- Best cutoff: approve the safest **{cut['approval_rate']:.0%}**: default rate falls from "
+         f"{allin['default_rate']:.1%} to **{cut['default_rate']:.1%}** and profit rises to "
+         f"**{money(cut['profit'])}** (+{money(cut['profit'] - allin['profit'])})."
+         if cut["approval_rate"] < 1 else
+         "- Best cutoff: approving everyone. Under these assumptions every risk band is still profitable; "
+         "try a higher cost of funds in the dashboard."),
         f"- Collections: the top 10% of loans by expected loss carry **{m['top_10pct_expected_loss_share']:.0%}** "
         "of all expected loss, so calling them first covers the most risk per call.",
         "",

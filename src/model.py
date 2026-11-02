@@ -26,7 +26,7 @@ from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from config import DEFAULT_LGD, PROCESSED, TABLES, TEST_YEAR
+from config import COST_OF_FUNDS, DEFAULT_LGD, PROCESSED, TABLES, TEST_YEAR
 from cutoff import cutoff_curve, estimate_lgd
 
 # Borrower and loan details known at application time.
@@ -113,7 +113,8 @@ def main():
     best_name, best_p = max([("Logistic regression", p_logit), ("Gradient boosting", p_gbm)],
                             key=lambda t: roc_auc_score(y_te, t[1]))
     keep = [c for c in ["loan_id", "issue_month", "grade", "purpose", "income_band", "loan_amnt",
-                        "int_rate", "term_months", "installment", "annual_inc", "is_default"] if c in test]
+                        "int_rate", "term_months", "installment", "annual_inc", "is_default",
+                        "post_total_pymnt"] if c in test]
     scored = test[keep].copy()
     scored["pd"] = best_p
     # Decile 1 = safest 10% of applicants, decile 10 = riskiest 10%
@@ -144,10 +145,10 @@ def main():
 
     # Approval cutoff economics
     lgd = estimate_lgd(loans, DEFAULT_LGD)
-    curve = cutoff_curve(scored, lgd)
+    curve = cutoff_curve(scored, lgd, COST_OF_FUNDS)
     curve.round(4).to_csv(TABLES / "cutoff_curve.csv", index=False)
     best = curve.loc[curve["profit"].idxmax()]
-    print(f"\nLGD used: {lgd:.0%}")
+    print(f"\nLGD used for expected loss: {lgd:.0%}  |  cost of funds: {COST_OF_FUNDS:.0%} a year")
     print("Cutoff curve:\n" + curve.round(3).to_string(index=False))
 
     # Collections priority: expected loss = PD x exposure x LGD
@@ -164,6 +165,8 @@ def main():
         "best_model": best_name,
         "models": results,
         "lgd": lgd,
+        "cost_of_funds": COST_OF_FUNDS,
+        "profit_basis": "actual" if "post_total_pymnt" in scored else "estimated",
         "best_cutoff": {k: (round(float(v), 4) if isinstance(v, (float, np.floating)) else int(v))
                         for k, v in best.items()},
         "approve_all": {k: (round(float(v), 4) if isinstance(v, (float, np.floating)) else int(v))

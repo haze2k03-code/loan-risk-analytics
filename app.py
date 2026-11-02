@@ -104,14 +104,20 @@ with tab_model:
 # ---------------- Approval cutoff ----------------
 with tab_cutoff:
     st.markdown("Approve only the safest share of applicants (ranked by the model) and see what happens "
-                "to defaults and profit. Profit = interest from repaid loans minus losses on defaults.")
+                "to defaults and profit. Profit = what each loan actually paid back minus the amount lent, "
+                "minus the lender's cost of funds.")
     scored = t["scored_test_loans"]
+    has_actual = "post_total_pymnt" in scored
     a, b = st.columns(2)
     approve_pct = a.slider("Share of applicants approved", 10, 100, int(m["best_cutoff"]["approval_rate"] * 100), 5,
                            format="%d%%")
-    lgd = b.slider("Loss given default (share of a bad loan never recovered)", 0.2, 1.0, float(m["lgd"]), 0.05)
+    cof_pct = b.slider("Cost of funds (% a year)", 0, 12, int(round(m.get("cost_of_funds", 0.05) * 100)), 1,
+                       format="%d%%")
+    lgd = m["lgd"]
+    if not has_actual:
+        lgd = st.slider("Loss given default (share of a bad loan never recovered)", 0.2, 1.0, float(m["lgd"]), 0.05)
 
-    df = add_profit(scored, lgd).sort_values("pd").reset_index(drop=True)
+    df = add_profit(scored, lgd, cof_pct / 100).sort_values("pd").reset_index(drop=True)
     k = max(1, int(round(len(df) * approve_pct / 100)))
     approved, everyone = df.iloc[:k], df
 
@@ -120,7 +126,7 @@ with tab_cutoff:
     c2.metric("Default rate", f"{approved['is_default'].mean():.1%}",
               f"{(approved['is_default'].mean() - everyone['is_default'].mean()) * 100:+.1f} pts", delta_color="inverse")
     c3.metric("Profit", f"${approved['profit'].sum() / 1e6:,.2f}M",
-              f"${(approved['profit'].sum() - everyone['profit'].sum()) / 1e6:+,.2f}M")
+              f"${(approved['profit'].sum() - everyone['profit'].sum()) / 1e6:+,.2f}M vs approve all")
     c4.metric("Max PD approved", f"{approved['pd'].max():.1%}")
 
     curve = []
@@ -133,13 +139,14 @@ with tab_cutoff:
     best_pct = int(curve["profit_m"].idxmax())
     l, r = st.columns(2)
     with l:
-        st.markdown(f"**Profit by approval rate** (peak at {best_pct}% with this LGD)")
+        st.markdown(f"**Profit by approval rate** (peak at {best_pct}% with a {cof_pct}% cost of funds)")
         st.line_chart(curve["profit_m"], x_label="% of applicants approved", y_label="Profit ($M)")
     with r:
         st.markdown("**Default rate of approved loans**")
         st.line_chart(curve["default_rate"], x_label="% of applicants approved", y_label="Default rate")
-    st.caption("Simplified economics: ignores funding cost, prepayments and operating cost. "
-               "Good for comparing cutoffs, not for exact profit.")
+    st.caption(("Uses actual repayments for each test loan (early repayments and recoveries included). "
+                if has_actual else "Estimated repayments (no payment data found). ")
+               + "Operating costs are ignored, so read it as a comparison between cutoffs, not exact profit.")
 
 # ---------------- Collections priority ----------------
 with tab_coll:
